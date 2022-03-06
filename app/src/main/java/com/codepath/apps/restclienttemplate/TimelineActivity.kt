@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.codepath.apps.restclienttemplate.models.Tweet
+import com.codepath.asynchttpclient.RequestParams
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler
 import okhttp3.Headers
 import okhttp3.internal.notify
@@ -42,13 +43,25 @@ class TimelineActivity : AppCompatActivity() {
             android.R.color.holo_blue_bright,
             android.R.color.holo_green_light,
             android.R.color.holo_orange_light,
-            android.R.color.holo_red_light)
+            android.R.color.holo_red_light
+        )
 
         rvTweets = findViewById(R.id.rvTweets)
         adapter = TweetsAdapter(tweets)
 
         rvTweets.layoutManager = LinearLayoutManager(this)
         rvTweets.adapter = adapter
+
+        rvTweets.addOnScrollListener(object :
+            EndlessRecyclerViewScrollListener(rvTweets.layoutManager as LinearLayoutManager) {
+            override fun onLoadMore(page: Int, totalItemsCount: Int, view: RecyclerView?) {
+                Log.i(TAG, "onLoadMore page $page")
+
+                loadNextDataFromApi(page)
+            }
+
+        }
+        )
 
         populateHomeTimeline()
     }
@@ -74,11 +87,53 @@ class TimelineActivity : AppCompatActivity() {
                 }
             }
 
+            override fun onFailure(
+                statusCode: Int,
+                headers: Headers?,
+                response: String?,
+                throwable: Throwable?
+            ) {
+                Log.i(TAG, "onFailure $statusCode $response")
+            }
+        }
+        )
+    }
+
+    fun loadNextDataFromApi(offset: Int) {
+        val params = RequestParams().also {
+            it["count"] = "25"
+            it["max_id"] = tweets[tweets.size - 1].id
+        }
+        client.getHomeTimeline(params = params, handler = object : JsonHttpResponseHandler() {
+            override fun onSuccess(statusCode: Int, headers: Headers, json: JSON) {
+                Log.i(TAG, "onSuccess: $json")
+
+                val jsonArray = json.jsonArray
+
+                try {
+                    val listOfNewTweetsRetrieved = Tweet.fromJsonArray(jsonArray)
+                    tweets.addAll(listOfNewTweetsRetrieved)
+                    adapter.notifyItemRangeInserted(
+                        tweets.size - listOfNewTweetsRetrieved.size,
+                        listOfNewTweetsRetrieved.size
+                    )
+
+                } catch (e: JSONException) {
+                    Log.e(TAG, "JSON Exception $e")
+                }
+            }
+
             override fun onFailure(statusCode: Int, headers: Headers?, response: String?, throwable: Throwable?) {
                 Log.i(TAG, "onFailure $statusCode $response")
             }
         }
         )
+
+        // Send an API request to retrieve appropriate paginated data
+        //  --> Send the request including an offset value (i.e `page`) as a query parameter.
+        //  --> Deserialize and construct new model objects from the API response
+        //  --> Append the new data objects to the existing set of items inside the array of items
+        //  --> Notify the adapter of the new items made with `notifyItemRangeInserted()`
     }
 
     companion object {

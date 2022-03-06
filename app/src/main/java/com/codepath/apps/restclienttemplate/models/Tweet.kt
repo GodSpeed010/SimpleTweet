@@ -16,6 +16,7 @@ class Tweet {
     var user: User? = null
     var retweets: Int = 0
     var favoriteCount: Int = 0
+    var id: String = ""
 
     companion object {
         fun fromJson(jsonObject: JSONObject): Tweet {
@@ -25,6 +26,7 @@ class Tweet {
             tweet.user = User.fromJson(jsonObject.getJSONObject("user"))
             tweet.retweets = jsonObject.getInt("retweet_count") //todo
             tweet.favoriteCount = jsonObject.getInt("favorite_count")
+            tweet.id = jsonObject.getString("id_str")
             return tweet
         }
 
