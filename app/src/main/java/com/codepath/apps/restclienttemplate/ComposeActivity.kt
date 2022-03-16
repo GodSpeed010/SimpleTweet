@@ -7,40 +7,47 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.codepath.apps.restclienttemplate.databinding.ActivityComposeBinding
 import com.codepath.apps.restclienttemplate.models.Tweet
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler
 import okhttp3.Headers
 
 class ComposeActivity : AppCompatActivity() {
 
-    lateinit var etCompose: EditText
-    lateinit var btnTweet: Button
-
     lateinit var client: TwitterClient
+
+    lateinit var binding: ActivityComposeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_compose)
+        binding = ActivityComposeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        etCompose = findViewById(R.id.etTweetCompose)
-        btnTweet = findViewById(R.id.btnTweet)
+        binding.lifecycleOwner = this
+
+        val characterCount: MutableLiveData<String> = MutableLiveData("$MAX_TWEET_LENGTH")
+
+        binding.characterCount = characterCount
 
         client = TwitterApplication.getRestClient(this)
 
-        btnTweet.setOnClickListener {
+        binding.btnTweet.setOnClickListener {
 
             //Grab content of edittext
-            val tweetContent = etCompose.text.toString()
+            val tweetContent = binding.etTweetCompose.text.toString()
 
             // 1. Make sure tweet isn't empty
             if (tweetContent.isEmpty()) {
                 Toast.makeText(this, "Empty tweets are not allowed", Toast.LENGTH_SHORT).show()
             } else {
                 // 2. Make sure tweet is under character count
-                if (tweetContent.length > 140) {
+                if (tweetContent.length > MAX_TWEET_LENGTH) {
                     Toast.makeText(
                         this,
-                        "Tweet is too long! Limit is 140 characters",
+                        "Tweet is too long! Limit is $MAX_TWEET_LENGTH characters",
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
@@ -74,12 +81,17 @@ class ComposeActivity : AppCompatActivity() {
                         }
                     )
                 }
-
             }
+        }
+
+        binding.etTweetCompose.addTextChangedListener {
+            //update LiveData
+            characterCount.value = (MAX_TWEET_LENGTH - it.toString().length).toString()
         }
     }
 
     companion object {
-        val TAG = "ComposeActivity"
+        const val TAG = "ComposeActivity"
+        const val MAX_TWEET_LENGTH = 280
     }
 }
