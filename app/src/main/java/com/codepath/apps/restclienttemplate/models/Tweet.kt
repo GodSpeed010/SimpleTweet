@@ -1,6 +1,8 @@
 package com.codepath.apps.restclienttemplate.models
 
+import android.os.Parcelable
 import android.text.format.DateUtils
+import kotlinx.parcelize.Parcelize
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.ParseException
@@ -8,15 +10,15 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-
-class Tweet {
-
-    var body: String = ""
-    var relativeTimestamp: String = ""
-    var user: User? = null
-    var retweets: Int = 0
-    var favoriteCount: Int = 0
+@Parcelize
+class Tweet(
+    var body: String = "",
+    var relativeTimestamp: String = "",
+    var user: User? = null,
+    var retweets: Int = 0,
+    var favoriteCount: Int = 0,
     var id: String = ""
+) : Parcelable {
 
     companion object {
         fun fromJson(jsonObject: JSONObject): Tweet {

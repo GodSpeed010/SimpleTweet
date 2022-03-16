@@ -35,15 +35,17 @@
         app:layout_constraintBottom_toBottomOf="@+id/tvUsername"
         app:layout_constraintStart_toEndOf="@+id/tvUsername"
         app:layout_constraintTop_toTopOf="@+id/tvUsername"
-        tools:text="@warriors" />
+        tools:text="\@warriors" />
 
     <TextView
         android:id="@+id/tvRelativeTimestamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="15dp"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintBottom_toBottomOf="@+id/tvScreenName"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tvScreenName"
         app:layout_constraintTop_toTopOf="@+id/tvScreenName"
         tools:text="8m" />
 
